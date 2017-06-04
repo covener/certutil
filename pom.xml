@@ -40,7 +40,7 @@
       <configuration>
         <archive>
           <manifest>
-            <mainClass>org.misers.certutil.Main</mainClass>
+            <mainClass>org.misers.certutil.CertUtil</mainClass>
           </manifest>
         </archive>
         <descriptorRefs>
