@@ -1,10 +1,10 @@
 #!/bin/sh
 
 BIN_DIR=`dirname ${0}`
-TARGET_DIR=$BIN_DIR/../target/
+MYJAR=$BIN_DIR/certutil.jar
 
-if ! ls -1 $TARGET_DIR/certutil-*.jar 2>/dev/null >/dev/null; then
-  mvn compile assembly:single
+if ! test -f $MYJAR; then
+   $BIN_DIR/build.sh
 fi
 
-java -jar $BIN_DIR/../target/certutil*.jar "$@"
+java -jar $MYJAR "$@"
