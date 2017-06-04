@@ -20,8 +20,10 @@
 
 package org.misers.certutil;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
@@ -113,8 +115,9 @@ public class GetHPKPFingerprint {
         System.out.println(retriever.getPIN());
     }
 
-    private static void usage() {
-        System.err.println("Required Parameters: -db /path/to/cms.kdb -label label-name");
+    private static void usage() throws URISyntaxException {
+        File myjar =  new File(GetHPKPFingerprint.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+        System.err.println("java -jar " + myjar + " -db /path/to/cms.kdb -label label-name");
         System.exit(1);
     }
 

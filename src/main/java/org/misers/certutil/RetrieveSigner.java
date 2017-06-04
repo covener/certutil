@@ -31,6 +31,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.security.KeyStore;
 import java.security.Provider;
 import java.security.Security;
@@ -266,6 +267,15 @@ public class RetrieveSigner {
         return null;
     }
     
+    private static void usage(Options options) throws URISyntaxException { 
+        File myjar =  new File(GetHPKPFingerprint.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+        HelpFormatter formatter = new HelpFormatter();
+        
+        formatter.printHelp("RetrieveSigner host port [keystore-to-update] [options]\n", options);
+        System.err.println("\n\nExamples:\n\tjava -jar " + myjar + " w3.ibm.com 443 /tmp/key.kdb");
+        System.err.println("\tjava -jar " + myjar + " --host w3.ibm.com --port 443 --db /tmp/key.kdb");
+        System.exit(1);;
+    }
     
     private class LenientTrustManager implements javax.net.ssl.TrustManager, javax.net.ssl.X509TrustManager {
         public java.security.cert.X509Certificate[] getAcceptedIssuers() {
@@ -311,13 +321,8 @@ public class RetrieveSigner {
         options.addOption("check", false, "just check the keystore");
         options.addOption("h", false, "help");
 
-        HelpFormatter formatter = new HelpFormatter();
-        
         if (args.length < 1) {
-            formatter.printHelp("RetrieveSigner host port [keystore-to-update] [options]\n", options);
-            System.err.println("\n\nExamples:\n\tjava -jar retrievesigner.jar w3.ibm.com 443 /tmp/key.kdb");
-            System.err.println("\tjava -jar retrievesigner.jar --host w3.ibm.com --port 443 --db /tmp/key.kdb");
-            return;
+            usage(options);
         }
         
         /* Convert old/simple syntax to getopt syntax */
@@ -361,6 +366,7 @@ public class RetrieveSigner {
             line = parser.parse(options, newargs);
         } catch (ParseException exp) {
             System.out.println(exp);
+            HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("RetrieveSigner", options);
             return;
         }
