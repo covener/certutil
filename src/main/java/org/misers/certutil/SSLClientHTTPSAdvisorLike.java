@@ -233,7 +233,8 @@ public class SSLClientHTTPSAdvisorLike
                 }
                 try {
                     ok = false;
-                    Double delay = Math.random() * 20;
+                    // first we synch, then we stagger.
+                    Double delay = Math.random() * 20; // 0-20ms 
                     Thread.sleep(delay.longValue());
                     client.get(host, port, url);
                 } catch (IOException e) {
