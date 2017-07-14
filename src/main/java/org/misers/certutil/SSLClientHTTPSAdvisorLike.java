@@ -15,6 +15,14 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import javax.net.ssl.SSLSocket;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
 import javax.net.ssl.*;
 
 
@@ -131,23 +139,66 @@ public class SSLClientHTTPSAdvisorLike
    }
    
     public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException {
+        CommandLineParser parser = new DefaultParser();
+        CommandLine line = null;
+        Options options = new Options();
+        int reqs = 100;
+        
+        options.addOption("count", true, "number of requests per input triplet");
+        options.addOption("hosts", true, "comma-separated hosts");
+        options.addOption("ports", true, "comma-separated ports");
+        options.addOption("urls", true, "comma-separated URL paths");
+        options.addOption("h", false, "help");
+
+        HelpFormatter formatter = new HelpFormatter();
+    
+        try {
+            line = parser.parse(options, args);
+        } catch (ParseException exp) {
+            System.out.println(exp);
+            formatter.printHelp("SSLClientHTTPSAdvisorLike", options);
+            return;
+        }
+        
         SSLClientHTTPSAdvisorLike client = new SSLClientHTTPSAdvisorLike();
-        System.setErr(client.log); // XXX don't use this anywhere but ont he command line!
+        if (line.hasOption("count")) { 
+            reqs = Integer.parseInt(line.getOptionValue("count"));
+        }
+        
+        System.setErr(client.log); // XXX don't use this anywhere but on the command line!
         System.setOut(client.log);
         
-        if (args.length != 3) { 
-            System.err.println("Args are host[,host]... port[,port]... url-path[,url-path]...");
-            System.err.println("\te.g.: 127.0.0.1,127.0.0.2,127.0.0.3 443,443,10443 /,/,/");
-            System.exit(1);
+        args = line.getArgs();
+        
+        String[] hosts = new String[] {};
+        String[] ports = new String[] {};
+        String[] urls  = new String[]  {};
+        
+        if (args.length == 3) { 
+            hosts = args[0].split(",");
+            ports = args[1].split(",");
+            urls  = args[2].split(",");
+        }
+        else if (args.length == 0) { 
+            if (!(line.hasOption("hosts") && line.hasOption("ports") && line.hasOption("urls"))) { 
+                formatter.printHelp("SSLClientHTTPSAdvisorLike [-count N] -hosts host1[,host2]... -ports 443[,443]... /[,/]...", options);
+                return;
+            }
+            hosts = line.getOptionValue("hosts").split(",");
+            ports = line.getOptionValue("ports").split(",");
+            urls  = line.getOptionValue("urls").split(",");
+
+        }
+        else { 
+            formatter.printHelp("SSLClientHTTPSAdvisorLike", options);
+            return;
         }
 
-        String[] hosts = args[0].split(",");
-        String[] ports = args[1].split(",");
-        String[] urls = args[2].split(",");
         int nthreads = hosts.length;
         
         if (hosts.length != ports.length || ports.length != urls.length) { 
             System.err.println("All comma-separated args must be the same length");
+            formatter.printHelp("SSLClientHTTPSAdvisorLike", options);
             System.exit(1);
         }
         
@@ -168,7 +219,7 @@ public class SSLClientHTTPSAdvisorLike
             threads[i].start();
         }
         
-        for(int i = 0; i < 100; i++) { 
+        for(int i = 0; i < reqs; i++) { 
             client.burst();
             if (client.failed > 0) { 
                 break;
