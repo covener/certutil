@@ -1,4 +1,4 @@
 #!/bin/sh
 
 mvn compile assembly:single
-cp target/certutil-*.jar bin/certutil.jar
+cp target/certutil-*with*.jar bin/certutil.jar

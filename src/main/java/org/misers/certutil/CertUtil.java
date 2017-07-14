@@ -36,7 +36,7 @@ public class CertUtil {
     
     private static void usage() throws URISyntaxException { 
         File myjar =  new File(CertUtil.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-        System.err.println("java -jar " + myjar + " RetrieveSigner | GetPIN");
+        System.err.println("java -jar " + myjar + " RetrieveSigner | GetPIN | Torture");
         System.exit(1);
     }
     
@@ -58,6 +58,9 @@ public class CertUtil {
         }
         else if(op.equals("GetPIN")) { 
             GetHPKPFingerprint.main(supplicantArgs);
+        }
+        else if(op.equals("Torture")) { 
+            SSLClientHTTPSAdvisorLike.main(supplicantArgs);
         }
         else { 
             usage();

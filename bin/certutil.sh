@@ -7,4 +7,5 @@ if ! test -f $MYJAR; then
    $BIN_DIR/build.sh
 fi
 
-java -jar $MYJAR "$@"
+JAVA_ARGS="-Djavax.net.debug=ALL"
+java $JAVA_ARGS -jar $MYJAR "$@"
