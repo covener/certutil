@@ -98,7 +98,8 @@ public class SSLClientHTTPSAdvisorLike
            char[] tmpbuf = new char[512]; 
            int rc = in.read(tmpbuf);
            while (-1 != rc) {
-               output.append(tmpbuf, 0, rc);
+               // throw it away so we can test with large responses.
+               //output.append(tmpbuf, 0, rc);
                rc = in.read(tmpbuf);
            }
            
@@ -108,14 +109,14 @@ public class SSLClientHTTPSAdvisorLike
            
        }
        catch (Exception e) { 
-           log.println("Exception client=" +socket.getLocalPort() + ", server=" + host + ":" + port + ", " + e.toString());
+           log.println("Exception client=" +socket.getLocalPort() + ", server=" + host + ":" + port + url + ", " + e.toString());
        }
        finally { 
            if (socket != null) { 
                socket.close();
            }
        }
-       log.println("client=" +socket.getLocalPort() + ", server=" + host + ":" + port + ", response line: " + responseLine);
+       log.println("client=" +socket.getLocalPort() + ", server=" + host + ":" + port + url + ", response line: " + responseLine);
        return responseLine.contains("200");
    }
     
