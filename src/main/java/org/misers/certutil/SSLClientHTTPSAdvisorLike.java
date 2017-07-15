@@ -10,11 +10,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.List;
 
 import javax.net.ssl.SSLSocket;
 
@@ -31,7 +30,6 @@ import javax.net.ssl.*;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
 
 public class SSLClientHTTPSAdvisorLike
 {
@@ -48,6 +46,7 @@ public class SSLClientHTTPSAdvisorLike
     private static final String CRLF = "\r\n";
     private Object sem1 = new Object();
     public int failed;
+    List<String> failures;
     
     /**
      * Constructs a new SSLClient instance:
@@ -73,6 +72,7 @@ public class SSLClientHTTPSAdvisorLike
         javax.net.ssl.HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());   
         
         log = new ServerDocLog();
+        failures = new ArrayList<String>();
     }
     
     public boolean get(String host, int port, String url) throws IOException {
@@ -140,6 +140,14 @@ public class SSLClientHTTPSAdvisorLike
            sem1.notifyAll();
        }
    }
+   public String toString() { 
+       if (failed == 0) { 
+           return("OK");
+       }
+       else { 
+           return("FAIL: " + Arrays.asList(this.failures).toString());
+       }
+   }
    
     public static void main(String[] args) throws KeyManagementException, NoSuchAlgorithmException {
         CommandLineParser parser = new DefaultParser();
@@ -205,14 +213,20 @@ public class SSLClientHTTPSAdvisorLike
             System.exit(1);
         }
         
+        boolean ok = false;
+        
         try {
-            client.get(hosts[0], Integer.parseInt(ports[0]), urls[0]);
+            ok = client.get(hosts[0], Integer.parseInt(ports[0]), urls[0]);
         } catch (NumberFormatException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+        }
+        
+        if (!ok) { 
+            client.log.println(client.toString());
         }
         
         Thread[] threads;
@@ -249,6 +263,9 @@ public class SSLClientHTTPSAdvisorLike
             }
         }
         if (client.failed > 0) { 
+            if (!ok) { 
+                client.log.println(client.toString());
+            }
             System.exit(1);
         }
 
@@ -293,7 +310,7 @@ public class SSLClientHTTPSAdvisorLike
                     Thread.sleep(delay.longValue());
                     client.get(host, port, url);
                 } catch (IOException e) {
-                    client.fail(e.toString());
+                    client.fail(host+":"+port+url + " " + e.toString());
                 } catch (InterruptedException e) {
                 }
                 ok = true;
@@ -323,14 +340,29 @@ public class SSLClientHTTPSAdvisorLike
             }
         }
 
+        private byte[] addPrefix(byte buf[], String prefix) { 
+            byte[] out = new byte[buf.length + prefix.length() + 1];
+            System.arraycopy(prefix.getBytes(), 0, out, 0, prefix.length());
+            buf[prefix.length() + 1] = ' ';
+            System.arraycopy(buf, 0, out, prefix.length() + 1, buf.length);
+            return out;
+        }
+        protected String getLogPrefix() { 
+            StringBuilder sb = new StringBuilder(getTimeStamp());
+            long tid = Thread.currentThread().getId();
+            sb.append("t").append(tid).append(" ");
+            return sb.toString();
+        }
+        
         public void write(byte buf[], int off, int len) {
-            Long tid = Thread.currentThread().getId();
-            String t = "t" + tid.toString();
             try {
-                byte newbuff[] = new byte[len - off + t.length() + 1];
-                System.arraycopy(t.getBytes(), 0, newbuff, 0, t.length());
-                System.arraycopy(buf, off, newbuff, t.length() + 1, len);
-                out.write(buf, off, len);
+                String prefix = getLogPrefix();
+                if (off == 0) { 
+                    out.write(buf, off, len);
+                }
+                else { 
+                    out.write(addPrefix(buf, prefix), off, len+prefix.length()+1);
+                }
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -518,6 +550,7 @@ public class SSLClientHTTPSAdvisorLike
 
     public void fail(String s) {
         log.println(s);
+        failures.add(s);
         this.failed++;  
     }
     
