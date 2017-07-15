@@ -322,31 +322,7 @@ public class SSLClientHTTPSAdvisorLike
     class ServerDocLog extends PrintStream {
         private final FastDateFormat  timeFormatter = FastDateFormat.getInstance("HH:mm:ss.SSS");
         OutputStream out;
-        @Override
-        public void println(String x) {
-            StringBuilder sb = new StringBuilder(x);
-            if (sectionTitle != null) {
-                super.println(x);
-            } else {
-                String timestamp = getTimeStamp();
-                sb = new StringBuilder(timestamp).append(" ");
-                if (Thread.currentThread().getId() != 1) { 
-                    sb.append("t").append(Thread.currentThread().getId()).append(" ");
-                }
-                sb.append(x);
-                synchronized(this) { 
-                    super.println(sb.toString());
-                }
-            }
-        }
-
-        private byte[] addPrefix(byte buf[], String prefix) { 
-            byte[] out = new byte[buf.length + prefix.length() + 1];
-            System.arraycopy(prefix.getBytes(), 0, out, 0, prefix.length());
-            buf[prefix.length() + 1] = ' ';
-            System.arraycopy(buf, 0, out, prefix.length() + 1, buf.length);
-            return out;
-        }
+      
         protected String getLogPrefix() { 
             StringBuilder sb = new StringBuilder(getTimeStamp());
             long tid = Thread.currentThread().getId();
@@ -354,27 +330,32 @@ public class SSLClientHTTPSAdvisorLike
             return sb.toString();
         }
         
+        private byte[] addPrefix(byte buf[], int bufflen, String prefix) { 
+            int plen = prefix.length();
+            byte[] out = new byte[bufflen + plen + 1];
+            System.arraycopy(prefix.getBytes(), 0, out, 0, plen);
+            out[plen] = ' ';
+            System.arraycopy(buf, 0, out, plen + 1, bufflen);
+            return out;
+        }
+        
         public void write(byte buf[], int off, int len) {
-            try {
-                String prefix = getLogPrefix();
-                if (off == 0) { 
-                    out.write(buf, off, len);
-                }
-                else { 
-                    out.write(addPrefix(buf, prefix), off, len+prefix.length()+1);
-                }
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            String prefix = getLogPrefix();
+            if (off != 0 
+                    || sectionTitle != null 
+                    || (len == 1 && buf[0] == '\n')
+                    || (len == 2 && buf[0] == '\r' && buf[1] == '\n')
+              ){ 
+                super.write(buf, off, len);
+            }
+            else { 
+                byte[] msg = addPrefix(buf, len, prefix);
+                super.write(msg, 0, msg.length); // ours is not over-allocated
             }
         }
         
-        private synchronized String getTimeStamp() {
+        private String getTimeStamp() {
             return timeFormatter.format(new Date()) + " ";
-        }
-
-        public void println_no_timestamp(String x) {
-            super.println(x);
         }
 
         private String sectionTitle = null;
