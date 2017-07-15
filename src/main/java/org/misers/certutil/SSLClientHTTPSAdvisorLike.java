@@ -13,6 +13,8 @@ import java.io.PrintStream;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import javax.net.ssl.SSLSocket;
 
@@ -22,6 +24,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang.time.FastDateFormat;
 
 import javax.net.ssl.*;
 
@@ -300,7 +303,7 @@ public class SSLClientHTTPSAdvisorLike
     } // SSLClientHTTPSAdvisorLike
     
     class ServerDocLog extends PrintStream {
-        private final SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm:ss.SSS");
+        private final FastDateFormat  timeFormatter = FastDateFormat.getInstance("HH:mm:ss.SSS");
         OutputStream out;
         @Override
         public void println(String x) {
@@ -334,7 +337,7 @@ public class SSLClientHTTPSAdvisorLike
             }
         }
         
-        private String getTimeStamp() {
+        private synchronized String getTimeStamp() {
             return timeFormatter.format(new Date()) + " ";
         }
 
