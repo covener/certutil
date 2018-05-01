@@ -92,7 +92,7 @@ public class RetrieveSigner {
 
         System.out.println("Getting signer for " + host + ":" + port);
         javax.net.ssl.SSLContext sc = null;
-        sc = javax.net.ssl.SSLContext.getInstance("TLS");
+        sc = javax.net.ssl.SSLContext.getInstance("SSL");
 
         sc.init(null, trustAllCerts, null);
         SSLSocket socket = (SSLSocket) sc.getSocketFactory().createSocket(host, port);
