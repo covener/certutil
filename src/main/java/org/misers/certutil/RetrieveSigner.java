@@ -117,7 +117,7 @@ public class RetrieveSigner {
                return cert;
             }
         }
-        System.err.println("The target server does not send its root certificate as part of the handshake");
+        System.err.println("The target server does not send its root certificate as part of the handshake. You'll have to grab the CA certificate elsehwere and 'add' it with gskcapicmd");
        
         int i = 0;
         for (X509Certificate cert : certs) { 
@@ -148,8 +148,14 @@ public class RetrieveSigner {
             System.err.println("pw is " + pw);
         }
         if (isKDB) { 
-            @SuppressWarnings("unchecked")
-            Class<java.security.Provider> cmsclass = (Class<Provider>) Class.forName("com.ibm.security.cmskeystore.CMSProvider");
+            Class<java.security.Provider> cmsclass = null;
+            try { 
+                cmsclass = (Class<Provider>) Class.forName("com.ibm.security.cmskeystore.CMSProvider");
+            }
+            catch (Exception e) { 
+                System.err.println("Error loading CMS (*.kdb) provider, use an IBM Java SDK!");
+                return;
+            }
             Security.addProvider(cmsclass.newInstance());
         }
         
