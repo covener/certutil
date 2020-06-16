@@ -1,6 +1,9 @@
 # certutil
 java certificate utility
 
+This command must be run with an IBM JDK for CMS (*.kdb) support.
+
+
 ## Subcommands
 
 ### RetrieveSigner
