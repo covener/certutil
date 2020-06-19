@@ -3,11 +3,10 @@ java certificate utility
 
 This command must be run with an IBM JDK for CMS (*.kdb) support.
 
-
 ## Subcommands
 
 ### RetrieveSigner
-Retrieve root CA from port (if the server sends it!) and add it to a java keystore
+Retrieve root CA from port (if the server sends it!) and add it to the keystore argument (jks or kdb)
 
 ### GetPIN
 Generate an HTTP Public Key Pinning PIN from a keystore and label
