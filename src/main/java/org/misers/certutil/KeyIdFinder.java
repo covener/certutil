@@ -25,8 +25,8 @@ import java.util.Arrays;
 
 public class KeyIdFinder { 
 
-    static byte[] PREFIX_AKI = new byte[] { 0x55, 0x1d, 0x23, 0x04, 0x18, 0x30};
-    static byte[] PREFIX_SKI = new byte[] { 0x55, 0x1d, 0x0e, 0x04, 0x16, 0x04};
+static byte[] PREFIX_AKI = new byte[] { 0x55, 0x1d, 0x23, 0x04 /* octet string */, 0x18 /* len */, 0x30 /*sequence*/, 0x16 /* len */, (byte)0x80 /* 0th elem */};
+    static byte[] PREFIX_SKI = new byte[] { 0x55, 0x1d, 0x0e, 0x04 /* octet string */, 0x16 /* len */, 0x04};
 
     static String getAKI(X509Certificate cert) throws CertificateEncodingException { 
         byte[] bytes = cert.getEncoded();
@@ -35,7 +35,6 @@ public class KeyIdFinder {
             return null;
         }
         offset += PREFIX_AKI.length;
-        offset +=2; // skip to length
         byte length = bytes[offset];
         byte[] slice = Arrays.copyOfRange(bytes, offset+1, offset+1+length);
         return bytesToHex(slice);
