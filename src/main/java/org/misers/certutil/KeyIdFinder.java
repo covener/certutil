@@ -50,7 +50,9 @@ public class KeyIdFinder {
             byte length = bytes[offset];
             byte[] slice = Arrays.copyOfRange(bytes, offset+1, offset+1+length);
             return bytesToHex(slice);
-        }    private static String bytesToHex(byte[] bytes) {
+        }    
+        
+    private static String bytesToHex(byte[] bytes) {
         StringBuffer sb = new StringBuffer();
         for (Byte b : bytes) {
             sb.append(String.format("%02X:", b));
