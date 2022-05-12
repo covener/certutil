@@ -26,6 +26,7 @@ import java.util.Arrays;
 public class KeyIdFinder { 
 
     static byte[] PREFIX_AKI = new byte[] { 0x55, 0x1d, 0x23, 0x04, 0x18, 0x30};
+    static byte[] PREFIX_SKI = new byte[] { 0x55, 0x1d, 0x0e, 0x04, 0x16, 0x04};
 
     static String getAKI(X509Certificate cert) throws CertificateEncodingException { 
         byte[] bytes = cert.getEncoded();
@@ -39,22 +40,55 @@ public class KeyIdFinder {
         byte[] slice = Arrays.copyOfRange(bytes, offset+1, offset+1+length);
         return bytesToHex(slice);
     }
-
-
-    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
-    private static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 3];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 3] = HEX_ARRAY[v >>> 4];
-            hexChars[j * 3 + 1] = HEX_ARRAY[v & 0x0F];
-            hexChars[j * 3 + 2] = ':';
+    static String getSKI(X509Certificate cert) throws CertificateEncodingException { 
+            byte[] bytes = cert.getEncoded();
+            int offset = indexOf(bytes, PREFIX_SKI);
+            if (offset < 1) { 
+                return null;
+            }
+            offset += PREFIX_SKI.length;
+            byte length = bytes[offset];
+            byte[] slice = Arrays.copyOfRange(bytes, offset+1, offset+1+length);
+            return bytesToHex(slice);
+        }    private static String bytesToHex(byte[] bytes) {
+        StringBuffer sb = new StringBuffer();
+        for (Byte b : bytes) {
+            sb.append(String.format("%02X:", b));
         }
-        String s = new String(hexChars);
-        return s.substring(0, s.length() - 1);
+        sb.deleteCharAt(sb.length()-1);
+        return sb.toString();
     }
 
-    public static int indexOf(byte[] haystack, byte[] needle)
+
+  /* from Guava, AL 2.0 licensed */
+  /**
+   * Returns the start position of the first occurrence of the specified {@code target} within
+   * {@code array}, or {@code -1} if there is no such occurrence.
+   *
+   * <p>More formally, returns the lowest index {@code i} such that {@code Arrays.copyOfRange(array,
+   * i, i + target.length)} contains exactly the same elements as {@code target}.
+   *
+   * @param array the array to search for the sequence {@code target}
+   * @param target the array to search for as a sub-sequence of {@code array}
+   */
+  public static int indexOf(byte[] array, byte[] target) {
+    if (target.length == 0) {
+      return 0;
+    }
+
+    outer:
+    for (int i = 0; i < array.length - target.length + 1; i++) {
+      for (int j = 0; j < target.length; j++) {
+        if (array[i + j] != target[j]) {
+          continue outer;
+        }
+      }
+      return i;
+    }
+    return -1;
+  }
+
+    public static int indexOf2(byte[] haystack, byte[] needle)
     {
         // needle is null or empty
         if (needle == null || needle.length == 0)

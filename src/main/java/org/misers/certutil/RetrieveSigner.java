@@ -124,7 +124,8 @@ public class RetrieveSigner {
            System.err.println("Depth " + i++);
            System.err.println("  Subject: " + cert.getSubjectDN());
            System.err.println("  Issuer : " + cert.getIssuerDN());
-           System.err.println("  AKI is " + KeyIdFinder.getAKI(cert));
+           System.err.println("  AKI    : " + KeyIdFinder.getAKI(cert));
+           System.err.println("  SKI    : " + KeyIdFinder.getSKI(cert));
            
         }
         System.exit(1);
