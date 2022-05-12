@@ -36,8 +36,6 @@ public class KeyIdFinder {
         offset += PREFIX_AKI.length;
         offset +=2; // skip to length
         byte length = bytes[offset];
-        length &= 0xff;
-        System.err.println("Length is " + length);
         byte[] slice = Arrays.copyOfRange(bytes, offset+1, offset+1+length);
         return bytesToHex(slice);
     }
