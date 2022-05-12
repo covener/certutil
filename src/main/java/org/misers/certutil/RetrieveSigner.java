@@ -37,8 +37,8 @@ import java.security.Provider;
 import java.security.Security;
 import java.util.Arrays;
 
-import javax.security.cert.CertificateEncodingException;
-import javax.security.cert.X509Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
@@ -110,7 +110,7 @@ public class RetrieveSigner {
         }
         socket.close();
         SSLSession sess = socket.getSession();
-        X509Certificate[] certs = sess.getPeerCertificateChain();
+        X509Certificate[] certs = (X509Certificate[]) sess.getPeerCertificates();
         for (X509Certificate cert : certs) { 
             if (cert.getSubjectDN().equals(cert.getIssuerDN())) {
                System.out.println("Got signer, Subject=[" + cert.getSubjectDN() + "]");
@@ -124,6 +124,7 @@ public class RetrieveSigner {
            System.err.println("Depth " + i++);
            System.err.println("  Subject: " + cert.getSubjectDN());
            System.err.println("  Issuer : " + cert.getIssuerDN());
+           System.err.println("  AKI is " + KeyIdFinder.getAKI(cert));
            
         }
         System.exit(1);
@@ -153,7 +154,7 @@ public class RetrieveSigner {
                 cmsclass = (Class<Provider>) Class.forName("com.ibm.security.cmskeystore.CMSProvider");
             }
             catch (Exception e) { 
-                System.err.println("Error loading CMS (*.kdb) provider, use an IBM Java SDK!");
+                System.err.println("Error loading CMS (*.kdb) provider, use an IBM Java SDK!\n" + e.toString());
                 return;
             }
             Security.addProvider(cmsclass.newInstance());
@@ -193,7 +194,7 @@ public class RetrieveSigner {
         }
         
         System.out.println("Checking keystore " + ks + " for existing signer " + cert.getSubjectDN() + " ...");
-        String alias = keystore.getCertificateAlias(convert(cert));
+        String alias = keystore.getCertificateAlias(cert);
         
         if (alias != null) { 
             System.out.println("Requested signer already exists with label '" + alias + "'");
@@ -208,7 +209,7 @@ public class RetrieveSigner {
             
         System.out.println("Updating keystore " + ks + " ...");
         
-        keystore.setCertificateEntry(label, convert(cert));
+        keystore.setCertificateEntry(label, cert);
         
         /* Step two, write a new updated KDB */
         String tmpks = ks + ".tmp";
@@ -394,6 +395,8 @@ public class RetrieveSigner {
         
         RetrieveSigner retriever = new RetrieveSigner();
         X509Certificate cert = retriever.getCert(line.getOptionValue("host"), Integer.parseInt(line.getOptionValue("port")));
+
+
         File tmp = File.createTempFile("temp",".der");
         retriever.writeCert(cert, tmp.getAbsolutePath());
 
