@@ -25,27 +25,61 @@ import java.util.Arrays;
 
 public class KeyIdFinder { 
 
-static byte[] PREFIX_AKI = new byte[] { 0x55, 0x1d, 0x23, 0x04 /* octet string */, 0x18 /* len */, 0x30 /*sequence*/, 0x16 /* len */, (byte)0x80 /* 0th elem */};
-    static byte[] PREFIX_SKI = new byte[] { 0x55, 0x1d, 0x0e, 0x04 /* octet string */, 0x16 /* len */, 0x04};
+
+static byte[] PREFIX_AKI_LEN= new byte[] { 0x55, 0x1d, 0x23, 0x04 /* octet string */};
+static byte[] PREFIX_SKI_LEN= new byte[] { 0x55, 0x1d, 0x0e, 0x04 /* octet string */};
+
+    static int getAKILength(X509Certificate cert) throws CertificateEncodingException { 
+        byte[] bytes = cert.getEncoded();
+        int offset = indexOf(bytes, PREFIX_AKI_LEN);
+        if (offset < 1) { 
+            return -1;
+        }
+        offset += PREFIX_AKI_LEN.length;
+        byte length = bytes[offset];
+        return (length - 4);
+    }
+    static int getSKILength(X509Certificate cert) throws CertificateEncodingException { 
+        byte[] bytes = cert.getEncoded();
+        int offset = indexOf(bytes, PREFIX_SKI_LEN);
+        if (offset < 1) { 
+            return -1;
+        }
+        byte[] PREFIX_SKI_STD = new byte[] { 0x55, 0x1d, 0x0e, 0x04 /* octet string */, 0x16 /* len */, 0x04};
+        offset += PREFIX_SKI_LEN.length;
+
+        byte length = bytes[offset];
+        return (length - 2);
+    }
 
     static String getAKI(X509Certificate cert) throws CertificateEncodingException { 
         byte[] bytes = cert.getEncoded();
-        int offset = indexOf(bytes, PREFIX_AKI);
+        int offset = indexOf(bytes, PREFIX_AKI_LEN);
         if (offset < 1) { 
             return null;
         }
-        offset += PREFIX_AKI.length;
+        offset += PREFIX_AKI_LEN.length;
+        byte[] PREFIX_AKI_STD = new byte[] { 0x55, 0x1d, 0x23, 0x04 /* octet string */, 0x18 /* len */, 0x30 /*sequence*/, 0x16 /* len */, (byte)0x80 /* 0th elem */};
+        offset++; // octet len
+        offset++; // sequence;
+        offset++; // sequence len
+        offset++; // 0th element
         byte length = bytes[offset];
         byte[] slice = Arrays.copyOfRange(bytes, offset+1, offset+1+length);
         return bytesToHex(slice);
     }
+
+
+
     static String getSKI(X509Certificate cert) throws CertificateEncodingException { 
             byte[] bytes = cert.getEncoded();
-            int offset = indexOf(bytes, PREFIX_SKI);
+            int offset = indexOf(bytes, PREFIX_SKI_LEN);
             if (offset < 1) { 
                 return null;
             }
-            offset += PREFIX_SKI.length;
+            offset += PREFIX_SKI_LEN.length;
+            offset++; // octet len
+            offset++; // octet string
             byte length = bytes[offset];
             byte[] slice = Arrays.copyOfRange(bytes, offset+1, offset+1+length);
             return bytesToHex(slice);
