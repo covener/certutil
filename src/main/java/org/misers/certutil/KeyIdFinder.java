@@ -36,8 +36,12 @@ static byte[] PREFIX_SKI_LEN= new byte[] { 0x55, 0x1d, 0x0e, 0x04 /* octet strin
             return -1;
         }
         offset += PREFIX_AKI_LEN.length;
+        offset++; // octet len
+        offset++; // sequence
+        offset++; // sequence len
+        offset++; // 0th element
         byte length = bytes[offset];
-        return (length - 4);
+        return length;
     }
     static int getSKILength(X509Certificate cert) throws CertificateEncodingException { 
         byte[] bytes = cert.getEncoded();
@@ -46,10 +50,11 @@ static byte[] PREFIX_SKI_LEN= new byte[] { 0x55, 0x1d, 0x0e, 0x04 /* octet strin
             return -1;
         }
         byte[] PREFIX_SKI_STD = new byte[] { 0x55, 0x1d, 0x0e, 0x04 /* octet string */, 0x16 /* len */, 0x04};
+        offset++; // octet len
+        offset++; // octet string
         offset += PREFIX_SKI_LEN.length;
-
         byte length = bytes[offset];
-        return (length - 2);
+        return length;
     }
 
     static String getAKI(X509Certificate cert) throws CertificateEncodingException { 

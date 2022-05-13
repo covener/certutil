@@ -126,6 +126,10 @@ public class RetrieveSigner {
            System.err.println("  Issuer : " + cert.getIssuerDN());
            System.err.println("  AKI    : " + KeyIdFinder.getAKI(cert));
            System.err.println("  SKI    : " + KeyIdFinder.getSKI(cert));
+          /* 
+           System.err.println("  AKI    : " + KeyIdFinder.getAKI(cert) + " " + KeyIdFinder.getAKILength(cert));
+           System.err.println("  SKI    : " + KeyIdFinder.getSKI(cert) + " " + KeyIdFinder.getSKILength(cert));
+           */
            
         }
         System.exit(1);
